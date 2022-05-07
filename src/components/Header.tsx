@@ -21,7 +21,7 @@ const Header = ({ onSwitchNetwork, dataChainId }: HeaderProps) => {
     <chakra.header boxShadow="xs">
       <Container maxW="8xl">
         <Flex py={2} justify="space-between" align="center">
-          <Heading size={"2xl"}>basketh</Heading>
+          <Heading size={"2xl"}>indexify.xyz</Heading>
           <Flex justify="space-between" align="center">
             <NetworkDropdown
               onChange={onSwitchNetwork}
