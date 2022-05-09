@@ -1,34 +1,40 @@
-import { useQuery } from "@apollo/client";
+import { Flex } from "@chakra-ui/react";
+import { useEthers } from "@usedapp/core";
+import { Mainnet } from "./config";
 import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import ErrorMessage from "./components/ErrorMessage";
 import Header from "./components/Header";
-import { GET_AVAILABLE_TOKENS, GET_WHITELISTED_POOLS } from "./graphql/queries";
-import { getAvailablePools, getWhitelistedPools } from "./graphql/utils";
-import { NETWORK_BY_CHAIN_ID, NETWORK_CURRENCIES } from "./lib/constants";
+import { isChainIdSupported } from "./lib/network";
 import Create from "./pages/create";
 import Dashboard from "./pages/dashboard";
 import Invest from "./pages/invest";
 import Landing from "./pages/landing";
-import { Flex } from "@chakra-ui/react";
 interface AppProps {
   dataChainId: number;
-  onSwitchNetwork: (chainId: number) => void;
+  onSelectNetwork: (chainId: number) => void;
 }
 
-const App = ({ dataChainId, onSwitchNetwork }: AppProps) => {
-  const currentNetworkData = NETWORK_BY_CHAIN_ID[dataChainId].chainName;
+const App = ({ dataChainId, onSelectNetwork }: AppProps) => {
+  // const currentNetworkData = NETWORK_BY_CHAIN_ID[dataChainId].chainName;
 
-  const { data: pools } = getAvailablePools(
-    useQuery(GET_AVAILABLE_TOKENS(NETWORK_CURRENCIES[currentNetworkData]))
-  );
+  // const { data: pools } = getAvailablePools(
+  //   useQuery(GET_AVAILABLE_TOKENS(NETWORK_CURRENCIES[currentNetworkData]))
+  // );
 
-  const { data: whitelistedPoolsIds } = getWhitelistedPools(
-    useQuery(GET_WHITELISTED_POOLS(NETWORK_CURRENCIES[currentNetworkData]))
-  );
-
+  // const { data: whitelistedPoolsIds } = getWhitelistedPools(
+  //   useQuery(GET_WHITELISTED_POOLS(NETWORK_CURRENCIES[currentNetworkData]))
+  // );
+  const { chainId } = useEthers();
+  const showMessage = !isChainIdSupported(chainId || Mainnet.chainId);
   return (
     <Flex direction="column" h="100%">
-      <Header onSwitchNetwork={onSwitchNetwork} dataChainId={dataChainId} />
+      <ErrorMessage
+        show={showMessage}
+        title="Current network is not supported!"
+        description="Please change to a supported network."
+      />
+      <Header onSelectNetwork={onSelectNetwork} dataChainId={dataChainId} />
       <BrowserRouter>
         {/* {pools.map((pool: any) => {
             const token = pool.token0 || pool.token1;

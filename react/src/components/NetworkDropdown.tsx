@@ -6,39 +6,41 @@ import {
   MenuButton,
   MenuList,
 } from "@chakra-ui/react";
-import {
-  Chain,
-  Mainnet,
-  Mumbai,
-  Optimism,
-  OptimismKovan,
-  Polygon,
-  useEthers,
-} from "@usedapp/core";
+import { useEthers } from "@usedapp/core";
 import React from "react";
 import { BiChevronDown } from "react-icons/bi";
-import EthereumLogo from "../img/ethereum.svg";
-import OptimismLogo from "../img/optimism.svg";
-import OptimismKovanLogo from "../img/optimism-kovan.svg";
-import PolygonLogo from "../img/polygon.png";
-import MumbaiLogo from "../img/polygon-mumbai.png";
-import { NETWORK_BY_CHAIN_ID } from "../lib/constants";
+import {
+  ENABLED_NETWORKS,
+  ExtendedChain,
+  NETWORK_BY_CHAIN_ID,
+} from "../config";
+import { isChainIdSupported } from "../lib/network";
+
+const SelectedNetwork = ({ chainId }: { chainId: number }) => {
+  if (!isChainIdSupported(chainId)) {
+    return <>Not Supported</>;
+  }
+  const network = NETWORK_BY_CHAIN_ID[chainId];
+  return (
+    <Flex alignItems="center">
+      <Avatar src={network.logo} h="28px" w="28px" mr={2} />
+      <span>
+        {network.chainName === "Mainnet" ? "Ethereum" : network.chainName}
+      </span>
+    </Flex>
+  );
+};
 
 interface NetworkDropdownProps {
-  onChange: (network: number) => void;
+  onSelectNetwork: (network: number) => void;
   dataChainId: number;
 }
 
-const NetworkDropdown = ({ onChange, dataChainId }: NetworkDropdownProps) => {
+const NetworkDropdown = ({
+  onSelectNetwork,
+  dataChainId,
+}: NetworkDropdownProps) => {
   const { chainId, account } = useEthers();
-  const chains: Chain[] = [Mainnet, Optimism, OptimismKovan, Polygon, Mumbai];
-  const logos = {
-    [Mainnet.chainId]: EthereumLogo,
-    [Optimism.chainId]: OptimismLogo,
-    [OptimismKovan.chainId]: OptimismKovanLogo,
-    [Polygon.chainId]: PolygonLogo,
-    [Mumbai.chainId]: MumbaiLogo,
-  };
 
   const selectedChainId = account && chainId ? chainId : dataChainId;
   return (
@@ -49,33 +51,26 @@ const NetworkDropdown = ({ onChange, dataChainId }: NetworkDropdownProps) => {
         display="flex"
         mr={2}
       >
-        <Flex alignItems="center">
-          <Avatar src={logos[selectedChainId]} h="28px" w="28px" mr={2} />
-          <span>
-            {NETWORK_BY_CHAIN_ID[selectedChainId].chainName === "Mainnet"
-              ? "Ethereum"
-              : NETWORK_BY_CHAIN_ID[selectedChainId].chainName}
-          </span>
-        </Flex>
+        <SelectedNetwork chainId={selectedChainId} />
       </MenuButton>
       <MenuList p={2} borderRadius="12px">
-        {chains.map((chain: Chain, i: number) => {
+        {ENABLED_NETWORKS.map((chain: ExtendedChain, i: number) => {
           return (
             <Button
               key={chain.chainId}
               onClick={() => {
-                onChange(chain.chainId);
+                onSelectNetwork(chain.chainId);
               }}
               width="100%"
               display="flex"
               alignItems="center"
               justifyContent="flex-start"
-              mb={i === chains.length - 1 ? 0 : 2}
+              mb={i === ENABLED_NETWORKS.length - 1 ? 0 : 2}
               px="10px"
               py="5px"
             >
               <Avatar
-                src={logos[chain.chainId]}
+                src={NETWORK_BY_CHAIN_ID[chain.chainId].logo}
                 h="28px"
                 w="28px"
                 css={{ marginRight: "1em" }}
@@ -103,7 +98,7 @@ const NetworkDropdown = ({ onChange, dataChainId }: NetworkDropdownProps) => {
     </Menu>
   );
 };
-// const NetworkDropdown = ({ onChange, dataChainId }: NetworkDropdownProps) => {
+// const NetworkDropdown = ({ onSelectNetwork, dataChainId }: NetworkDropdownProps) => {
 // const { chainId, account } = useEthers();
 // const chains: Chain[] = [Mainnet, Optimism, Polygon];
 // const logos = {
@@ -127,7 +122,7 @@ const NetworkDropdown = ({ onChange, dataChainId }: NetworkDropdownProps) => {
 //                 <Button
 //                   key={chain.chainId}
 //                   onClick={() => {
-//                     onChange(chain.chainId);
+//                     onSelectNetwork(chain.chainId);
 //                   }}
 //                   css={{
 //                     display: "flex",

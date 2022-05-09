@@ -10,7 +10,8 @@ import { Button } from "@chakra-ui/react";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import { formatEther } from "@ethersproject/units";
-import { NATIVE_CURRENCY_BY_CHAIN_ID } from "../lib/constants";
+import { NETWORK_BY_CHAIN_ID } from "../config";
+import { isChainIdSupported } from "../lib/network";
 
 const WalletButton = () => {
   const { account, activate, deactivate, chainId } = useEthers();
@@ -55,11 +56,18 @@ const WalletButton = () => {
     }
   };
 
+  if (chainId && !isChainIdSupported(chainId)) {
+    return (
+      <Button colorScheme="red" mr={2}>
+        Not Supported
+      </Button>
+    );
+  }
   return account ? (
     <>
       <Button colorScheme="green" mr={2}>
         {formatEther(etherBalance || 0).substring(0, 7)}{" "}
-        {NATIVE_CURRENCY_BY_CHAIN_ID[chainId || Mainnet.chainId].symbol}
+        {NETWORK_BY_CHAIN_ID[chainId || Mainnet.chainId].currencyInfo.symbol}
       </Button>
       <Button variant="gradient" onClick={() => deactivate()} mr={2}>
         {ens ?? shortenAddress(account)}

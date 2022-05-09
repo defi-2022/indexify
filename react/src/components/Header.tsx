@@ -11,11 +11,11 @@ import NetworkDropdown from "./NetworkDropdown";
 import WalletButton from "./WalletButton";
 
 interface HeaderProps {
-  onSwitchNetwork: (network: number) => void;
+  onSelectNetwork: (network: number) => void;
   dataChainId: number;
 }
 
-const Header = ({ onSwitchNetwork, dataChainId }: HeaderProps) => {
+const Header = ({ onSelectNetwork, dataChainId }: HeaderProps) => {
   const { colorMode, toggleColorMode } = useColorMode();
   return (
     <chakra.header boxShadow="xs">
@@ -24,7 +24,7 @@ const Header = ({ onSwitchNetwork, dataChainId }: HeaderProps) => {
           <Heading size={"2xl"}>indexify.xyz</Heading>
           <Flex justify="space-between" align="center">
             <NetworkDropdown
-              onChange={onSwitchNetwork}
+              onSelectNetwork={onSelectNetwork}
               dataChainId={dataChainId}
             />
             <WalletButton />
