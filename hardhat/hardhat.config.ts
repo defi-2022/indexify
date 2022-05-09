@@ -28,6 +28,7 @@ const config: HardhatUserConfig = {
       forking: {
         url: process.env.HARDHAT_FORKING_URL!,
       },
+      chainId: 1337,
     },
   },
   gasReporter: {
