@@ -8,6 +8,7 @@ import {
   getEthereumChainObjectForWallet,
   isChainIdSupported,
 } from "./lib/network";
+import SubgraphContext from "./context/SubgraphContext";
 
 const NetworkLayer = () => {
   const { switchNetwork, chainId, library, account } = useEthers();
@@ -34,12 +35,10 @@ const NetworkLayer = () => {
   }, [chainId]);
 
   const handleSelectNetwork = async (_chainId: number) => {
-    console.log({ account, chainId, _chainId });
     setDataChainId(_chainId);
     if (account && _chainId !== chainId) {
       try {
         await switchNetwork(_chainId);
-        console.log("after switch network");
       } catch (switchError) {
         try {
           const chain = getEthereumChainObjectForWallet(_chainId);
@@ -53,7 +52,9 @@ const NetworkLayer = () => {
 
   return (
     <ApolloProvider client={client}>
-      <App dataChainId={dataChainId} onSelectNetwork={handleSelectNetwork} />
+      <SubgraphContext.Provider value={dataChainId}>
+        <App onSelectNetwork={handleSelectNetwork} />
+      </SubgraphContext.Provider>
     </ApolloProvider>
   );
 };

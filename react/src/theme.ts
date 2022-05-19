@@ -1,4 +1,19 @@
 import { extendTheme } from "@chakra-ui/react";
+import { StepsStyleConfig } from "chakra-ui-steps";
+
+const CustomSteps = {
+  ...StepsStyleConfig,
+  baseStyle: (props: any) => {
+    return {
+      ...StepsStyleConfig.baseStyle(props),
+      label: {
+        ...StepsStyleConfig.baseStyle(props).label,
+        // your custom styles here
+        fontSize: "100px!important",
+      },
+    };
+  },
+};
 
 const colors = {
   brand: {
@@ -14,9 +29,15 @@ const theme = extendTheme({
     body: "Inter, sans-serif",
   },
   components: {
+    Steps: CustomSteps,
     Heading: {
       baseStyle: {
         letterSpacing: "-2.4px",
+      },
+    },
+    Text: {
+      baseStyle: {
+        fontSize: "14px",
       },
     },
     Button: {

@@ -1,21 +1,17 @@
-import { Gradient } from "../../components/Gradient";
 import {
-  Stack,
-  Heading,
-  Flex,
-  Box,
-  Container,
-  Text,
-  Icon,
-  useColorMode,
   Button,
+  Container,
+  Flex,
+  Heading,
+  useColorMode,
 } from "@chakra-ui/react";
-import { BiRightArrow } from "react-icons/bi";
-
+import { useNavigate } from "react-router-dom";
+import { Gradient } from "../../components/Gradient";
 const Landing = () => {
   const { colorMode } = useColorMode();
   const iconColor = colorMode === "light" ? "gray.300" : "gray.600";
   const descriptionBackground = colorMode === "light" ? "gray.100" : "gray.700";
+  const navigate = useNavigate();
   return (
     <Flex direction="column" justify="center" h="100%">
       <Container maxW="8xl" pb={10}>
@@ -34,6 +30,7 @@ const Landing = () => {
             fontSize={18}
             size="lg"
             mt={8}
+            onClick={() => navigate("/app")}
           >
             Start Investing
           </Button>

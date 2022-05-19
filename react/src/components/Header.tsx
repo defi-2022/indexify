@@ -9,14 +9,15 @@ import {
 import { BiDotsHorizontalRounded, BiMoon, BiSun } from "react-icons/bi";
 import NetworkDropdown from "./NetworkDropdown";
 import WalletButton from "./WalletButton";
-
+import { useContext } from "react";
+import SubgraphContext from "../context/SubgraphContext";
 interface HeaderProps {
   onSelectNetwork: (network: number) => void;
-  dataChainId: number;
 }
 
-const Header = ({ onSelectNetwork, dataChainId }: HeaderProps) => {
+const Header = ({ onSelectNetwork }: HeaderProps) => {
   const { colorMode, toggleColorMode } = useColorMode();
+  const dataChainId = useContext(SubgraphContext);
   return (
     <chakra.header boxShadow="xs">
       <Container maxW="8xl">

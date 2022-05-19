@@ -11,20 +11,10 @@ import Dashboard from "./pages/dashboard";
 import Invest from "./pages/invest";
 import Landing from "./pages/landing";
 interface AppProps {
-  dataChainId: number;
   onSelectNetwork: (chainId: number) => void;
 }
 
-const App = ({ dataChainId, onSelectNetwork }: AppProps) => {
-  // const currentNetworkData = NETWORK_BY_CHAIN_ID[dataChainId].chainName;
-
-  // const { data: pools } = getAvailablePools(
-  //   useQuery(GET_AVAILABLE_TOKENS(NETWORK_CURRENCIES[currentNetworkData]))
-  // );
-
-  // const { data: whitelistedPoolsIds } = getWhitelistedPools(
-  //   useQuery(GET_WHITELISTED_POOLS(NETWORK_CURRENCIES[currentNetworkData]))
-  // );
+const App = ({ onSelectNetwork }: AppProps) => {
   const { chainId } = useEthers();
   const showMessage = !isChainIdSupported(chainId || Mainnet.chainId);
   return (
@@ -34,21 +24,12 @@ const App = ({ dataChainId, onSelectNetwork }: AppProps) => {
         title="Current network is not supported!"
         description="Please change to a supported network."
       />
-      <Header onSelectNetwork={onSelectNetwork} dataChainId={dataChainId} />
+      <Header onSelectNetwork={onSelectNetwork} />
       <BrowserRouter>
-        {/* {pools.map((pool: any) => {
-            const token = pool.token0 || pool.token1;
-            return (
-              <div key={pool.id}>
-                {token.name} : {pool.totalValueLockedUSD}{" "}
-                {whitelistedPoolsIds.includes(pool.id) ? "WHITELISTED" : "---"}
-              </div>
-            );
-          })} */}
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="app" element={<Dashboard />} />
-          <Route path="create" element={<Create />} />
+          <Route path="funds/create" element={<Create />} />
           <Route path="invest" element={<Invest />} />
         </Routes>
       </BrowserRouter>

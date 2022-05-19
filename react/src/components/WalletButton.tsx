@@ -13,6 +13,27 @@ import { formatEther } from "@ethersproject/units";
 import { NETWORK_BY_CHAIN_ID } from "../config";
 import { isChainIdSupported } from "../lib/network";
 
+const providerOptions = {
+  injected: {
+    display: {
+      name: "Metamask",
+      description: "Connect with the provider in your Browser",
+    },
+    package: null,
+  },
+  walletconnect: {
+    package: WalletConnectProvider,
+    options: {
+      bridge: "https://bridge.walletconnect.org",
+      infuraId: "d8df2cb7844e4a54ab0a782f608749dd",
+    },
+  },
+};
+
+const web3Modal = new Web3Modal({
+  providerOptions,
+});
+
 const WalletButton = () => {
   const { account, activate, deactivate, chainId } = useEthers();
   const etherBalance = useEtherBalance(account);
@@ -26,27 +47,13 @@ const WalletButton = () => {
     }
   }, [error]);
 
-  const activateProvider = async () => {
-    const providerOptions = {
-      injected: {
-        display: {
-          name: "Metamask",
-          description: "Connect with the provider in your Browser",
-        },
-        package: null,
-      },
-      walletconnect: {
-        package: WalletConnectProvider,
-        options: {
-          bridge: "https://bridge.walletconnect.org",
-          infuraId: "d8df2cb7844e4a54ab0a782f608749dd",
-        },
-      },
-    };
+  useEffect(() => {
+    if (web3Modal.cachedProvider) {
+      activateProvider();
+    }
+  }, []);
 
-    const web3Modal = new Web3Modal({
-      providerOptions,
-    });
+  const activateProvider = async () => {
     try {
       const provider = await web3Modal.connect();
       await activate(provider);

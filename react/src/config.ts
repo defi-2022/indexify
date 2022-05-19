@@ -128,5 +128,8 @@ export const getUseDappConfig = () => {
       },
       {}
     ),
+    multicallAddresses: {
+      1337: "0x1780bcf4103d3f501463ad3414c7f4b654bb7afd",
+    },
   };
 };
