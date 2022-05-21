@@ -30,6 +30,7 @@ export interface ExtendedChain extends Chain {
   rpcUrl?: string;
   graphqlClient?: ApolloClient<any>;
   infuraUrl: string;
+  indexDeployerAddress?: string;
 }
 
 export const Mainnet: ExtendedChain = {
@@ -47,12 +48,13 @@ export const Mainnet: ExtendedChain = {
     uri: "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3",
   }),
   infuraUrl: process.env.REACT_APP_MAINNET_INFURA_URL!,
+  indexDeployerAddress: process.env.REACT_APP_MAINNET_INDEX_DEPLOYER_ADDRESS,
 };
 
 export const Optimism: ExtendedChain = {
   ...OptimismDapp,
   logo: OptimismLogo,
-  enabled: true,
+  enabled: !!process.env.REACT_APP_OPTIMISM_INDEX_DEPLOYER_ADDRESS,
   currency: OPTIMISM_WETH,
   currencyInfo: {
     name: "ETH",
@@ -65,12 +67,13 @@ export const Optimism: ExtendedChain = {
     uri: "https://api.thegraph.com/subgraphs/name/ianlapham/optimism-post-regenesis",
   }),
   infuraUrl: process.env.REACT_APP_OPTIMISM_INFURA_URL!,
+  indexDeployerAddress: process.env.REACT_APP_OPTIMISM_INDEX_DEPLOYER_ADDRESS,
 };
 
 export const Polygon: ExtendedChain = {
   ...PolygonDapp,
   logo: PolygonLogo,
-  enabled: true,
+  enabled: !!process.env.REACT_APP_POLYGON_INDEX_DEPLOYER_ADDRESS,
   currency: POLYGON_WMATIC,
   currencyInfo: {
     name: "MATIC",
@@ -83,6 +86,7 @@ export const Polygon: ExtendedChain = {
     uri: "https://api.thegraph.com/subgraphs/name/ianlapham/uniswap-v3-polygon",
   }),
   infuraUrl: process.env.REACT_APP_POLYGON_INFURA_URL!,
+  indexDeployerAddress: process.env.REACT_APP_POLYGON_INDEX_DEPLOYER_ADDRESS,
 };
 
 export const Localhost: ExtendedChain = {
@@ -90,7 +94,7 @@ export const Localhost: ExtendedChain = {
   chainName: "Localhost",
   chainId: 1337,
   logo: EthereumLogo,
-  enabled: true,
+  enabled: !!process.env.REACT_APP_LOCALHOST_INDEX_DEPLOYER_ADDRESS,
   currency: MAINNET_WETH,
   currencyInfo: {
     name: "ETH",
@@ -103,6 +107,7 @@ export const Localhost: ExtendedChain = {
     uri: "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3",
   }),
   infuraUrl: "http://localhost:8545",
+  indexDeployerAddress: process.env.REACT_APP_LOCALHOST_INDEX_DEPLOYER_ADDRESS,
 };
 
 export const ENABLED_NETWORKS: ExtendedChain[] = [
@@ -129,7 +134,7 @@ export const getUseDappConfig = () => {
       {}
     ),
     multicallAddresses: {
-      1337: "0x1780bcf4103d3f501463ad3414c7f4b654bb7afd",
+      1337: "0xac47e91215fb80462139756f43438402998e4a3a",
     },
   };
 };

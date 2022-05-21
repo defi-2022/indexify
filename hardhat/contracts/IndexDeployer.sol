@@ -3,23 +3,26 @@ pragma solidity ^0.8.0;
 
 import "./Index.sol";
 
-contract IndexDeployer {
-    address protocolAddress;
+// Initializable is already imported throuh ERC20Upgradeable on Index.sol
+contract IndexDeployer is Initializable {
+    // Restrictions and Caveats on how to upgrade this contract: https://docs.openzeppelin.com/learn/upgrading-smart-contracts
+    address public protocolAddress;
     address[] public indexes;
-    uint256 public indexContractVersion = 0;
-    uint256 protocolFee = 100; // default 1%
+    uint256 public indexContractVersion;
+    uint256 public protocolFee;
 
     event LogDeployedIndexContract(address child);
 
-    mapping(uint256 => address) nativeCurrenciesByChainId;
+    address public nativeCurrency;
 
-    Index public IndexContract = Index(address(0));
-
-    constructor(address _indexContractAddress) {
-        // msg sender here is the protocol address
-        protocolAddress = msg.sender;
-        setNewContractVersion(_indexContractAddress);
+    function initialize(address _protocolAddress) public initializer {
+        protocolAddress = _protocolAddress;
+        protocolFee = 100; // 1%
+        setNewContractVersion();
     }
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() initializer {}
 
     function createIndex(
         string memory _name,
@@ -28,10 +31,9 @@ contract IndexDeployer {
         uint256[] memory _percentages,
         uint24[] memory _poolFees,
         uint256 _managerFee
-    ) public {
-        address _nativeCurrency = nativeCurrenciesByChainId[block.chainid];
-        if (_nativeCurrency == address(0)) {
-            revert();
+    ) public returns (address) {
+        if (nativeCurrency == address(0)) {
+            revert("nativeCurrency is not set v1");
         }
 
         Index index = new Index(
@@ -41,13 +43,14 @@ contract IndexDeployer {
             _percentages,
             _poolFees,
             _managerFee,
-            _nativeCurrency,
+            nativeCurrency,
             protocolFee,
             protocolAddress,
             msg.sender
         );
         emit LogDeployedIndexContract(address(index));
         indexes.push(address(index));
+        return (address(index));
     }
 
     function setProtocolAddress(address _protocolAddress) public {
@@ -55,17 +58,22 @@ contract IndexDeployer {
         protocolAddress = _protocolAddress;
     }
 
-    function setNewContractVersion(address _newVersion) public {
+    function setNewContractVersion() public {
         require(msg.sender == protocolAddress);
-        IndexContract = Index(_newVersion);
         indexContractVersion = indexContractVersion + 1;
     }
 
-    function setNativeCurrencyForChainId(
-        address _nativeCurrency,
-        uint256 _chainId
-    ) public {
+    function setNativeCurrency(address _nativeCurrency) public {
         require(msg.sender == protocolAddress);
-        nativeCurrenciesByChainId[_chainId] = _nativeCurrency;
+        nativeCurrency = _nativeCurrency;
+    }
+
+    function setProtocolFee(uint256 _protocolFee) public {
+        require(msg.sender == protocolAddress);
+        protocolFee = _protocolFee;
+    }
+
+    function getIndexesLength() public view returns (uint256) {
+        return indexes.length;
     }
 }

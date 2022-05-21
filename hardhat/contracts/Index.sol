@@ -1,26 +1,21 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "hardhat/console.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
-import "@uniswap/v3-periphery/contracts/interfaces/IQuoter.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
-contract Index is ERC20 {
-    using SafeMath for uint256;
-    using SafeERC20 for ERC20;
+/// @dev Bump version when changing this contract
+contract Index is ERC20Upgradeable {
+    using SafeERC20Upgradeable for ERC20Upgradeable;
 
     // Uniswap V3 addressses are the same on all networks
     ISwapRouter public constant ROUTER =
         ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
-    IQuoter public constant QUOTER =
-        IQuoter(0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6);
 
     /// @dev Index properties
-    /// name is handled by ERC20 openzeppelin contract
-    /// symbol is handled by ERC20 openzeppelin contract
+    /// name is handled by ERC20Upgradeable openzeppelin contract
+    /// symbol is handled by ERC20Upgradeable openzeppelin contract
     address[] public composition;
     uint256[] public percentages;
     uint24[] public poolFees;
@@ -29,15 +24,15 @@ contract Index is ERC20 {
     uint256 public protocolFee;
     address payable public protocolAddress = payable(address(0));
     address public networkCurrency;
+    uint256 public protocolVersion = 1;
 
     // Index vault (investor => token => amount)
     mapping(address => mapping(address => uint256)) public vault;
 
-    uint256 public protocolBalance = 0;
     uint256 public managerBalance = 0;
 
     // Events
-    event Invested(address investor, uint256 amount);
+    event Invested(address investor, uint256 amount, uint256[] amountsSwapped);
     event Redeemed(address investor, uint256 amount);
 
     constructor(
@@ -51,7 +46,8 @@ contract Index is ERC20 {
         uint256 _protocolFee,
         address _protocolAddress,
         address _manager
-    ) ERC20(_name, _symbol) {
+    ) initializer ERC20Upgradeable() {
+        __ERC20_init(_name, _symbol);
         composition = _composition;
         // percentages should use basis points
         percentages = _percentages;
@@ -85,7 +81,8 @@ contract Index is ERC20 {
 
         // calculate fees
         uint256 _total = 0;
-        uint256[] memory _amounts;
+        uint256[] memory _amounts = new uint256[](composition.length);
+        uint256[] memory _amountsSwapped = new uint256[](composition.length);
         uint256 _feeForManager = (msg.value * managerFee) / 10000;
         uint256 _feeForProtocol = (msg.value * managerFee) / 10000;
         uint256 _valueAfterFees = msg.value - _feeForManager - _feeForProtocol;
@@ -101,8 +98,6 @@ contract Index is ERC20 {
             _total = _total + _amountToBuy;
         }
 
-        uint256 _reminder = _total - _valueAfterFees;
-
         // swap ETH for tokens
         for (uint256 i = 0; i < composition.length; i++) {
             uint256 _amountToBuy = _amounts[i];
@@ -117,33 +112,44 @@ contract Index is ERC20 {
             vault[msg.sender][composition[i]] =
                 vault[msg.sender][composition[i]] +
                 amountSwapped;
+
+            _amountsSwapped[i] = amountSwapped;
         }
 
         // fractional reminder goes to protocol balance
-        if (_reminder > 0) {}
+        uint256 _reminder = _total - _valueAfterFees;
+        protocolAddress.transfer(_feeForProtocol + _reminder);
+
+        // send ETH to manager
+        managerBalance = managerBalance + _feeForManager;
+
+        // send token to investor
+        _mint(msg.sender, _total);
+        // emit event
+        emit Invested(msg.sender, _total, _amountsSwapped);
     }
 
     function redeem() external {
         // redeem everything that belongs to him in the vault and burn its tokens
         for (uint256 i = 0; i < composition.length; i++) {
-            ERC20(composition[i]).safeTransfer(
+            ERC20Upgradeable(composition[i]).safeTransfer(
                 msg.sender,
                 vault[composition[i]][msg.sender]
             );
         }
         _burn(msg.sender, balanceOf(msg.sender));
+        // emit event
+        emit Redeemed(msg.sender, balanceOf(msg.sender));
     }
 
     function withdrawFees() external payable {
-        if (msg.sender == managerAddress) {
-            managerAddress.transfer(managerBalance);
-            managerBalance = 0;
-        }
+        require(
+            msg.sender == managerAddress,
+            "must be manager to withdraw fees"
+        );
 
-        if (msg.sender == protocolAddress) {
-            protocolAddress.transfer(protocolBalance);
-            protocolBalance = 0;
-        }
+        managerAddress.transfer(managerBalance);
+        managerBalance = 0;
     }
 
     function swapExactETHForToken(
