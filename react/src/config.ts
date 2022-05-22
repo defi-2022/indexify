@@ -4,11 +4,13 @@ import {
   Mainnet as MainnetDapp,
   Optimism as OptimismDapp,
   Polygon as PolygonDapp,
+  Mumbai as MumbaiDapp,
 } from "@usedapp/core";
 import EthereumLogo from "./img/ethereum.svg";
 import OptimismLogo from "./img/optimism.svg";
 import PolygonLogo from "./img/polygon.png";
 import { ApolloClient, InMemoryCache } from "@apollo/client";
+import { ethers } from "ethers";
 
 export const MAINNET_WETH = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
 export const OPTIMISM_WETH = "0x4200000000000000000000000000000000000006";
@@ -31,12 +33,14 @@ export interface ExtendedChain extends Chain {
   graphqlClient?: ApolloClient<any>;
   infuraUrl: string;
   indexDeployerAddress?: string;
+  indexDeployerBlockNumber?: number;
+  getTokenLogo: (tokenAddress: string) => string;
 }
 
 export const Mainnet: ExtendedChain = {
   ...MainnetDapp,
   logo: EthereumLogo,
-  enabled: true,
+  enabled: false,
   currency: MAINNET_WETH,
   currencyInfo: {
     name: "ETH",
@@ -48,7 +52,12 @@ export const Mainnet: ExtendedChain = {
     uri: "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3",
   }),
   infuraUrl: process.env.REACT_APP_MAINNET_INFURA_URL!,
-  indexDeployerAddress: process.env.REACT_APP_MAINNET_INDEX_DEPLOYER_ADDRESS,
+  indexDeployerAddress: "0x71089Ba41e478702e1904692385Be3972B2cBf9e",
+  getTokenLogo(tokenAddress: string): string {
+    return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${ethers.utils.getAddress(
+      tokenAddress
+    )}/logo.png`;
+  },
 };
 
 export const Optimism: ExtendedChain = {
@@ -68,6 +77,11 @@ export const Optimism: ExtendedChain = {
   }),
   infuraUrl: process.env.REACT_APP_OPTIMISM_INFURA_URL!,
   indexDeployerAddress: process.env.REACT_APP_OPTIMISM_INDEX_DEPLOYER_ADDRESS,
+  getTokenLogo(tokenAddress: string): string {
+    return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/optimism/assets/${ethers.utils.getAddress(
+      tokenAddress
+    )}/logo.png`;
+  },
 };
 
 export const Polygon: ExtendedChain = {
@@ -87,6 +101,36 @@ export const Polygon: ExtendedChain = {
   }),
   infuraUrl: process.env.REACT_APP_POLYGON_INFURA_URL!,
   indexDeployerAddress: process.env.REACT_APP_POLYGON_INDEX_DEPLOYER_ADDRESS,
+  indexDeployerBlockNumber: 28634195,
+  getTokenLogo(tokenAddress: string): string {
+    return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/polygon/assets/${ethers.utils.getAddress(
+      tokenAddress
+    )}/logo.png`;
+  },
+};
+
+export const Mumbai: ExtendedChain = {
+  ...MumbaiDapp,
+  logo: PolygonLogo,
+  enabled: !!process.env.REACT_APP_MUMBAI_INDEX_DEPLOYER_ADDRESS,
+  currency: POLYGON_MUMBAI,
+  currencyInfo: {
+    name: "MUMBAI",
+    symbol: "MUMBAI",
+    decimals: 18,
+  },
+  rpcUrl: "https://mumbai.polygon.io",
+  graphqlClient: new ApolloClient({
+    cache: new InMemoryCache(),
+    uri: "https://api.thegraph.com/subgraphs/name/ianlapham/uniswap-v3-polygon",
+  }),
+  infuraUrl: process.env.REACT_APP_MUMBAI_INFURA_URL!,
+  indexDeployerAddress: process.env.REACT_APP_MUMBAI_INDEX_DEPLOYER_ADDRESS,
+  getTokenLogo(tokenAddress: string): string {
+    return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/polygon/assets/${ethers.utils.getAddress(
+      tokenAddress
+    )}/logo.png`;
+  },
 };
 
 export const Localhost: ExtendedChain = {
@@ -108,6 +152,11 @@ export const Localhost: ExtendedChain = {
   }),
   infuraUrl: "http://localhost:8545",
   indexDeployerAddress: process.env.REACT_APP_LOCALHOST_INDEX_DEPLOYER_ADDRESS,
+  getTokenLogo(tokenAddress: string): string {
+    return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${ethers.utils.getAddress(
+      tokenAddress
+    )}/logo.png`;
+  },
 };
 
 export const ENABLED_NETWORKS: ExtendedChain[] = [
@@ -125,7 +174,7 @@ export const NETWORK_BY_CHAIN_ID: { [chainId: number]: ExtendedChain } =
 
 export const getUseDappConfig = () => {
   return {
-    readOnlyChainId: Mainnet.chainId,
+    readOnlyChainId: Polygon.chainId,
     readOnlyUrls: ENABLED_NETWORKS.reduce(
       (acc: { [x: number]: string }, network: ExtendedChain) => {
         acc[network.chainId] = network.infuraUrl;
@@ -134,7 +183,7 @@ export const getUseDappConfig = () => {
       {}
     ),
     multicallAddresses: {
-      1337: "0xac47e91215fb80462139756f43438402998e4a3a",
+      1337: "0xc66ab83418c20a65c3f8e83b3d11c8c3a6097b6f",
     },
   };
 };

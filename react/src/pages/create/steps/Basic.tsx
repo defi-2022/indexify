@@ -1,21 +1,16 @@
 import {
-  Alert,
-  AlertIcon,
   Button,
-  Checkbox,
+  chakra,
+  Flex,
   FormControl,
   FormErrorMessage,
+  FormHelperText,
   FormLabel,
   Input,
   Stack,
-  Text,
-  chakra,
-  FormHelperText,
   useColorModeValue,
-  Flex,
 } from "@chakra-ui/react";
 import { Field, Formik, FormikProps } from "formik";
-import { useState } from "react";
 
 interface StepProps {
   activeStep: number;
@@ -66,7 +61,6 @@ export default function Basic({
       <Formik
         initialValues={{ name: "", symbol: "" }}
         onSubmit={(values, actions) => {
-          console.log(values);
           onSubmit({ ...values, symbol: values.symbol.toUpperCase() });
           nextStep();
         }}

@@ -64,7 +64,7 @@ const theme = extendTheme({
             "linear-gradient(112deg, rgb(170, 255, 236) -63.59%, rgb(255, 78, 205) -20.3%, rgb(0, 112, 243) 70.46%)",
           color: "white",
           fontFamily: "heading",
-          fontWeight: "semi-bold",
+          fontWeight: "bold",
           fontSize: "sm",
           padding: "5px 20px",
           _hover: {

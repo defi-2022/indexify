@@ -11,6 +11,7 @@ import NetworkDropdown from "./NetworkDropdown";
 import WalletButton from "./WalletButton";
 import { useContext } from "react";
 import SubgraphContext from "../context/SubgraphContext";
+import { useNavigate } from "react-router-dom";
 interface HeaderProps {
   onSelectNetwork: (network: number) => void;
 }
@@ -18,11 +19,18 @@ interface HeaderProps {
 const Header = ({ onSelectNetwork }: HeaderProps) => {
   const { colorMode, toggleColorMode } = useColorMode();
   const dataChainId = useContext(SubgraphContext);
+  const navigate = useNavigate();
   return (
     <chakra.header boxShadow="xs">
       <Container maxW="8xl">
         <Flex py={2} justify="space-between" align="center">
-          <Heading size={"2xl"}>indexify.xyz</Heading>
+          <Heading
+            size={"2xl"}
+            cursor="pointer"
+            onClick={() => navigate("dashboard")}
+          >
+            indexify.xyz
+          </Heading>
           <Flex justify="space-between" align="center">
             <NetworkDropdown
               onSelectNetwork={onSelectNetwork}
@@ -30,7 +38,7 @@ const Header = ({ onSelectNetwork }: HeaderProps) => {
             />
             <WalletButton />
             <IconButton
-              mr={2}
+              // mr={2}
               aria-label="More options"
               icon={
                 colorMode === "light" ? (
@@ -41,10 +49,10 @@ const Header = ({ onSelectNetwork }: HeaderProps) => {
               }
               onClick={toggleColorMode}
             />
-            <IconButton
+            {/* <IconButton
               aria-label="More options"
               icon={<BiDotsHorizontalRounded size={20} fill="currentColor" />}
-            />
+            /> */}
           </Flex>
         </Flex>
       </Container>

@@ -13,14 +13,13 @@ import {
   Text,
   useToast,
 } from "@chakra-ui/react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { BiSearch } from "react-icons/bi";
 import { PoolInfoCell } from "../../../components/table/PoolInfoCell";
 import Table from "../../../components/table/Table";
 import { TokenInfoCell } from "../../../components/table/TokenInfoCell";
-import { usePoolData } from "../../../hooks";
+import { useCurrentNetwork, usePoolData } from "../../../hooks";
 import UniswapLogo from "../../../img/uniswap.svg";
-
 interface StepProps {
   activeStep?: number;
   nextStep: () => void;
@@ -39,6 +38,7 @@ export default function Composition({
   symbol,
   onSubmit,
 }: StepProps) {
+  const CurrentNetwork = useCurrentNetwork();
   const toast = useToast();
   const { pools, whitelistedPoolsIds } = usePoolData();
 
@@ -72,6 +72,7 @@ export default function Composition({
       })
       .map((pool: any) => {
         const token = pool.token0 || pool.token1;
+        const tokenNumberOpposite = pool.token0 ? 1 : 0;
         return {
           name: (
             <TokenInfoCell
@@ -80,8 +81,14 @@ export default function Composition({
             />
           ),
           pool: <PoolInfoCell pool={pool} />,
-          priceEth: (
-            <Text fontSize="sm">Ξ {token.derivedETH.substring(0, 7)}</Text>
+          price: (
+            <>
+              <Text fontSize="sm">Ξ {token.derivedETH.substring(0, 10)} </Text>
+              <Text fontSize="sm">
+                {CurrentNetwork.currencyInfo.symbol}{" "}
+                {pool[`token${tokenNumberOpposite}Price`].substring(0, 10)}
+              </Text>
+            </>
           ),
           protocol: (
             <Flex align="center">
@@ -144,8 +151,8 @@ export default function Composition({
             accessor: "name",
           },
           {
-            Header: "Price (ETH)",
-            accessor: "priceEth",
+            Header: `Price (ETH/${CurrentNetwork.currencyInfo.symbol})`,
+            accessor: "price",
           },
           {
             Header: "Pool",

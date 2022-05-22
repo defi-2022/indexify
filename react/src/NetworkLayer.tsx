@@ -1,6 +1,6 @@
 import { ApolloProvider } from "@apollo/client";
 import { useEthers } from "@usedapp/core";
-import { Mainnet } from "./config";
+import { Polygon } from "./config";
 import React, { useEffect } from "react";
 import App from "./App";
 import { NETWORK_BY_CHAIN_ID } from "./config";
@@ -12,12 +12,12 @@ import SubgraphContext from "./context/SubgraphContext";
 
 const NetworkLayer = () => {
   const { switchNetwork, chainId, library, account } = useEthers();
-  const defaultChainId = chainId || Mainnet.chainId;
+  const defaultChainId = chainId || Polygon.chainId;
   const [dataChainId, setDataChainId] = React.useState(defaultChainId);
   const [client, setClient] = React.useState<any>(
     isChainIdSupported(defaultChainId)
       ? NETWORK_BY_CHAIN_ID[defaultChainId].graphqlClient
-      : NETWORK_BY_CHAIN_ID[Mainnet.chainId].graphqlClient
+      : NETWORK_BY_CHAIN_ID[Polygon.chainId].graphqlClient
   );
 
   useEffect(() => {

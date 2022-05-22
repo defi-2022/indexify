@@ -25,6 +25,66 @@
         "internalType": "address",
         "name": "child",
         "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "_name",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "_symbol",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "address[]",
+        "name": "_composition",
+        "type": "address[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "_percentages",
+        "type": "uint256[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint24[]",
+        "name": "_poolFees",
+        "type": "uint24[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "_managerFee",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "_nativeCurrency",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "_protocolFee",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "_protocolAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "_manager",
+        "type": "address"
       }
     ],
     "name": "LogDeployedIndexContract",

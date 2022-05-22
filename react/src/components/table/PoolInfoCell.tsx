@@ -1,9 +1,7 @@
 import { Badge, Flex, Link, Text } from "@chakra-ui/react";
 import { shortenAddress } from "@usedapp/core";
-import { useContext } from "react";
-import { Localhost, Mainnet, Optimism, Polygon } from "../../config";
-import SubgraphContext from "../../context/SubgraphContext";
-
+import { useCurrentNetwork } from "../../hooks";
+import { ethers } from "ethers";
 interface PoolInfoCellProps {
   pool: {
     token0?: {
@@ -14,21 +12,18 @@ interface PoolInfoCellProps {
     };
     feeTier: number;
     id: string;
+    totalValueLockedUSD: string;
   };
 }
 export function PoolInfoCell({ pool }: PoolInfoCellProps) {
-  const dataChainId = useContext(SubgraphContext);
-  const networks = {
-    [Mainnet.chainId]: "ethereum",
-    [Optimism.chainId]: "optimism",
-    [Polygon.chainId]: "polygon",
-    [Localhost.chainId]: "ethereum",
-  };
+  const CurrentNetwork = useCurrentNetwork();
   return (
     <Flex direction="column">
       <Flex align="center">
         <Text fontSize="sm" fontWeight={700} mr={2}>
-          {`${pool.token0?.symbol || "ETH"} / ${pool.token1?.symbol || "ETH"}`}{" "}
+          {`${pool.token0?.symbol || CurrentNetwork.currencyInfo.symbol} / ${
+            pool.token1?.symbol || CurrentNetwork.currencyInfo.symbol
+          }`}{" "}
         </Text>
         <Badge
           colorScheme={
@@ -50,6 +45,9 @@ export function PoolInfoCell({ pool }: PoolInfoCellProps) {
       >
         <Text fontSize="sm">{shortenAddress(pool.id)}</Text>
       </Link>
+      <Text>
+        <b>TVL (USD)</b>: ${Number(pool.totalValueLockedUSD).toFixed(2)}
+      </Text>
     </Flex>
   );
 }

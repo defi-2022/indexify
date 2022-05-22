@@ -113,6 +113,12 @@
         "internalType": "uint256[]",
         "name": "amountsSwapped",
         "type": "uint256[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "newTotalsInVault",
+        "type": "uint256[]"
       }
     ],
     "name": "Invested",
@@ -132,6 +138,12 @@
         "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "newTotalsInVault",
+        "type": "uint256[]"
       }
     ],
     "name": "Redeemed",
@@ -247,6 +259,19 @@
     "name": "buy",
     "outputs": [],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "calculateTotalsInVaultList",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -472,7 +497,13 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
     "name": "redeem",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -494,6 +525,25 @@
   {
     "inputs": [],
     "name": "totalSupply",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "totalsInVault",
     "outputs": [
       {
         "internalType": "uint256",

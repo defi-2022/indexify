@@ -10,6 +10,8 @@ interface DataPoint {
 interface DonutChartProps {
   data: DataPoint[];
   chartName: string;
+  w?: number;
+  h?: number;
 }
 
 const renderActiveShape = (props: any, chartName: string) => {
@@ -102,7 +104,12 @@ const renderActiveShape = (props: any, chartName: string) => {
   );
 };
 
-export default function DonutChart({ data, chartName }: DonutChartProps) {
+export default function DonutChart({
+  data,
+  chartName,
+  w = 400,
+  h = 400,
+}: DonutChartProps) {
   const colors = generateArrayOfColors(
     "rgb(255, 78, 205)",
     "rgb(0, 112, 243)",
@@ -114,7 +121,7 @@ export default function DonutChart({ data, chartName }: DonutChartProps) {
   };
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <PieChart width={400} height={400}>
+      <PieChart>
         <Pie
           stroke="none"
           activeIndex={activeIndex}

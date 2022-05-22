@@ -1,9 +1,6 @@
-import { Avatar, Flex, Icon, Text, Tooltip } from "@chakra-ui/react";
-import { ethers } from "ethers";
-import { useContext } from "react";
+import { Avatar, Flex, Icon, Link, Text, Tooltip } from "@chakra-ui/react";
 import { BiCheckCircle } from "react-icons/bi";
-import { Localhost, Mainnet, Optimism, Polygon } from "../../config";
-import SubgraphContext from "../../context/SubgraphContext";
+import { useCurrentNetwork } from "../../hooks";
 
 interface TokenInfoCellProps {
   token: {
@@ -12,24 +9,18 @@ interface TokenInfoCellProps {
     id: string;
   };
   whitelisted: boolean;
+  showAddress?: boolean;
 }
-export function TokenInfoCell({ token, whitelisted }: TokenInfoCellProps) {
-  const dataChainId = useContext(SubgraphContext);
-  const networks = {
-    [Mainnet.chainId]: "ethereum",
-    [Optimism.chainId]: "optimism",
-    [Polygon.chainId]: "polygon",
-    [Localhost.chainId]: "ethereum",
-  };
+export function TokenInfoCell({
+  token,
+  whitelisted,
+  showAddress = false,
+}: TokenInfoCellProps) {
+  const CurrentNetwork = useCurrentNetwork();
+
   return (
     <Flex align="center">
-      <Avatar
-        src={`https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${
-          networks[dataChainId]
-        }/assets/${ethers.utils.getAddress(token.id)}/logo.png`}
-        size="sm"
-        mr={2}
-      />
+      <Avatar src={CurrentNetwork.getTokenLogo(token.id)} size="sm" mr={2} />
       <Flex direction="column">
         <Flex align="center">
           <Text fontSize="sm" fontWeight={700}>
@@ -49,6 +40,16 @@ export function TokenInfoCell({ token, whitelisted }: TokenInfoCellProps) {
           )}
         </Flex>
         <Text fontSize="xs">{token.name}</Text>
+        {showAddress && (
+          <Link
+            fontSize="xs"
+            color="blue.500"
+            target="_blank"
+            href={CurrentNetwork.getExplorerAddressLink(token.id)}
+          >
+            {token.id}
+          </Link>
+        )}
       </Flex>
     </Flex>
   );
