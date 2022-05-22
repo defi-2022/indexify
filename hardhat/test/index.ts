@@ -83,45 +83,45 @@ describe("IndexDeployer", function () {
       expect(await index.managerBalance()).to.equal(0);
       expect(await indexDeployer.getIndexesLength()).to.equal(1);
     });
-    it("should deploy an Index STANDALONE (without using IndexDeployer)", async function () {
-      const Index = await ethers.getContractFactory("Index");
-      const index = await Index.deploy(
-        "Standalone Index",
-        "$STANDALONE",
-        [DAI, USDC],
-        [5000, 5000],
-        [3000, 3000],
-        100,
-        WETH,
-        100,
-        protocolAddress.address,
-        managerAddress.address
-      );
+    // it("should deploy an Index STANDALONE (without using IndexDeployer)", async function () {
+    //   const Index = await ethers.getContractFactory("Index");
+    //   const index = await Index.deploy(
+    //     "Standalone Index",
+    //     "$STANDALONE",
+    //     [DAI, USDC],
+    //     [5000, 5000],
+    //     [3000, 3000],
+    //     100,
+    //     WETH,
+    //     100,
+    //     protocolAddress.address,
+    //     managerAddress.address
+    //   );
 
-      expect(await index.symbol()).to.equal("$STANDALONE");
-      expect(await index.name()).to.equal("Standalone Index");
-      expect(await index.managerAddress()).to.equal(managerAddress.address);
-      expect(await index.managerFee()).to.equal(100);
-      expect(await index.protocolFee()).to.equal(100);
-      expect(await index.protocolAddress()).to.equal(protocolAddress.address);
-      expect(await index.networkCurrency()).to.equal(WETH);
-      expect(await index.managerBalance()).to.equal(0);
+    //   expect(await index.symbol()).to.equal("$STANDALONE");
+    //   expect(await index.name()).to.equal("Standalone Index");
+    //   expect(await index.managerAddress()).to.equal(managerAddress.address);
+    //   expect(await index.managerFee()).to.equal(100);
+    //   expect(await index.protocolFee()).to.equal(100);
+    //   expect(await index.protocolAddress()).to.equal(protocolAddress.address);
+    //   expect(await index.networkCurrency()).to.equal(WETH);
+    //   expect(await index.managerBalance()).to.equal(0);
 
-      await index
-        .connect(investorAddress)
-        .buy({ value: ethers.utils.parseEther("100") });
+    //   await index
+    //     .connect(investorAddress)
+    //     .buy({ value: ethers.utils.parseEther("100") });
 
-      expect(await index.managerBalance()).to.equal(
-        ethers.utils.parseEther("1") //fee 1%
-      );
+    //   expect(await index.managerBalance()).to.equal(
+    //     ethers.utils.parseEther("1") //fee 1%
+    //   );
 
-      expect(await index.balanceOf(investorAddress.address)).to.equal(
-        ethers.utils
-          .parseEther("100")
-          .sub(ethers.utils.parseEther("1")) //managementFee 1%
-          .sub(ethers.utils.parseEther("1")) //protocolFee 1%
-      );
-    });
+    //   expect(await index.balanceOf(investorAddress.address)).to.equal(
+    //     ethers.utils
+    //       .parseEther("100")
+    //       .sub(ethers.utils.parseEther("1")) //managementFee 1%
+    //       .sub(ethers.utils.parseEther("1")) //protocolFee 1%
+    //   );
+    // });
     it("should redeem the index", async function () {
       await indexDeployer.setNativeCurrency(WETH);
       const tx = await indexDeployer
@@ -146,9 +146,13 @@ describe("IndexDeployer", function () {
         .connect(investorAddress)
         .buy({ value: ethers.utils.parseEther("100") });
 
-      const redeemTx = await index.connect(investorAddress).redeem();
+      const redeemTx = await index
+        .connect(investorAddress)
+        .redeem(ethers.utils.parseEther("1"));
 
-      expect(await index.balanceOf(investorAddress.address)).to.equal(0);
+      expect(await index.balanceOf(investorAddress.address)).to.equal(
+        "97000000000000000000"
+      );
 
       // get all events
       // const buyRecepit = await buyTx.wait();

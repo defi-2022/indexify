@@ -11,7 +11,19 @@ contract IndexDeployer is Initializable {
     uint256 public indexContractVersion;
     uint256 public protocolFee;
 
-    event LogDeployedIndexContract(address child);
+    event LogDeployedIndexContract(
+        address child,
+        string _name,
+        string _symbol,
+        address[] _composition,
+        uint256[] _percentages,
+        uint24[] _poolFees,
+        uint256 _managerFee,
+        address _nativeCurrency,
+        uint256 _protocolFee,
+        address _protocolAddress,
+        address _manager
+    );
 
     address public nativeCurrency;
 
@@ -48,7 +60,19 @@ contract IndexDeployer is Initializable {
             protocolAddress,
             msg.sender
         );
-        emit LogDeployedIndexContract(address(index));
+        emit LogDeployedIndexContract(
+            address(index),
+            _name,
+            _symbol,
+            _composition,
+            _percentages,
+            _poolFees,
+            _managerFee,
+            nativeCurrency,
+            protocolFee,
+            protocolAddress,
+            msg.sender
+        );
         indexes.push(address(index));
         return (address(index));
     }

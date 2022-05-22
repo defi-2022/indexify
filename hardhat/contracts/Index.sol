@@ -28,12 +28,22 @@ contract Index is ERC20Upgradeable {
 
     // Index vault (investor => token => amount)
     mapping(address => mapping(address => uint256)) public vault;
+    mapping(address => uint256) public totalsInVault;
 
     uint256 public managerBalance = 0;
 
     // Events
-    event Invested(address investor, uint256 amount, uint256[] amountsSwapped);
-    event Redeemed(address investor, uint256 amount);
+    event Invested(
+        address investor,
+        uint256 amount,
+        uint256[] amountsSwapped,
+        uint256[] newTotalsInVault
+    );
+    event Redeemed(
+        address investor,
+        uint256 amount,
+        uint256[] newTotalsInVault
+    );
 
     constructor(
         string memory _name,
@@ -75,9 +85,21 @@ contract Index is ERC20Upgradeable {
         );
     }
 
+    function calculateTotalsInVaultList()
+        public
+        view
+        returns (uint256[] memory)
+    {
+        uint256[] memory result = new uint256[](composition.length);
+        for (uint256 i = 0; i < composition.length; i++) {
+            result[i] = totalsInVault[composition[i]];
+        }
+        return result;
+    }
+
     function buy() public payable {
         //divide the amount by the total percentage in basis points
-        require(msg.value > 0, "must send ether to buy");
+        require(msg.value > 0, "must send funds to buy");
 
         // calculate fees
         uint256 _total = 0;
@@ -91,7 +113,7 @@ contract Index is ERC20Upgradeable {
         for (uint256 i = 0; i < composition.length; i++) {
             require(
                 (_valueAfterFees / 10000) * 10000 == _valueAfterFees,
-                "eth sent is too small to calculate amounts"
+                "funds sent is too small to calculate amounts"
             );
             uint256 _amountToBuy = (_valueAfterFees * percentages[i]) / 10000;
             _amounts[i] = _amountToBuy;
@@ -114,6 +136,9 @@ contract Index is ERC20Upgradeable {
                 amountSwapped;
 
             _amountsSwapped[i] = amountSwapped;
+            totalsInVault[composition[i]] =
+                totalsInVault[composition[i]] +
+                amountSwapped;
         }
 
         // fractional reminder goes to protocol balance
@@ -125,21 +150,51 @@ contract Index is ERC20Upgradeable {
 
         // send token to investor
         _mint(msg.sender, _total);
+
         // emit event
-        emit Invested(msg.sender, _total, _amountsSwapped);
+        emit Invested(
+            msg.sender,
+            _total,
+            _amountsSwapped,
+            calculateTotalsInVaultList()
+        );
     }
 
-    function redeem() external {
+    function redeem(uint256 amount) external {
+        require(amount > 0, "amount must be greater than 0");
+        require(
+            amount <= balanceOf(msg.sender),
+            "amount must be less than or equal to balance"
+        );
+        uint256 initialAmountTokens = balanceOf(msg.sender);
+        uint256 amountRedeemedTokens = amount;
+
         // redeem everything that belongs to him in the vault and burn its tokens
         for (uint256 i = 0; i < composition.length; i++) {
+            uint256 _newAmountInVault = (initialAmountTokens *
+                vault[msg.sender][composition[i]] -
+                amountRedeemedTokens *
+                vault[msg.sender][composition[i]]) / initialAmountTokens;
+            uint256 _amountSubstracted = vault[msg.sender][composition[i]] -
+                _newAmountInVault;
             ERC20Upgradeable(composition[i]).safeTransfer(
                 msg.sender,
-                vault[composition[i]][msg.sender]
+                _amountSubstracted
             );
+
+            totalsInVault[composition[i]] =
+                totalsInVault[composition[i]] -
+                _amountSubstracted;
+
+            vault[msg.sender][composition[i]] = _newAmountInVault;
         }
-        _burn(msg.sender, balanceOf(msg.sender));
+        _burn(msg.sender, amount);
         // emit event
-        emit Redeemed(msg.sender, balanceOf(msg.sender));
+        emit Redeemed(
+            msg.sender,
+            balanceOf(msg.sender),
+            calculateTotalsInVaultList()
+        );
     }
 
     function withdrawFees() external payable {
@@ -184,5 +239,61 @@ contract Index is ERC20Upgradeable {
         // should return reminder of eth? in this case it does not matter
         // since all eth sent is used
         return ROUTER.exactInputSingle{value: _amountIn}(params);
+    }
+
+    function _transferVaults(
+        address owner,
+        address newOwner,
+        uint256 initialAmountTokens,
+        uint256 amountTransferredTokens
+    ) private {
+        for (uint256 i = 0; i < composition.length; i++) {
+            // calculate amount to transfer inside the vault
+            uint256 _newAmountInVault = (initialAmountTokens *
+                vault[msg.sender][composition[i]] -
+                amountTransferredTokens *
+                vault[msg.sender][composition[i]]) / initialAmountTokens;
+            uint256 _amountSubstracted = vault[msg.sender][composition[i]] -
+                _newAmountInVault;
+
+            require(
+                _amountSubstracted > 0,
+                "amount to transfer within vault are too small"
+            );
+            // update new owner vault
+            vault[newOwner][composition[i]] =
+                vault[newOwner][composition[i]] +
+                _amountSubstracted;
+            // update old owner vault
+            vault[owner][composition[i]] =
+                vault[owner][composition[i]] -
+                _amountSubstracted;
+        }
+    }
+
+    function transfer(address to, uint256 amount)
+        public
+        override
+        returns (bool)
+    {
+        address owner = _msgSender();
+        uint256 initialAmount = balanceOf(owner);
+        _transfer(owner, to, amount);
+        _transferVaults(owner, to, initialAmount, amount);
+        return true;
+    }
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) public virtual override returns (bool) {
+        uint256 initialAmount = balanceOf(from);
+        address spender = _msgSender();
+        _spendAllowance(from, spender, amount);
+        _transfer(from, to, amount);
+        _transferVaults(from, to, initialAmount, amount);
+
+        return true;
     }
 }
