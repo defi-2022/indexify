@@ -121,7 +121,7 @@ export default function DonutChart({
   };
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
+      <PieChart height={400} width={400}>
         <Pie
           stroke="none"
           activeIndex={activeIndex}

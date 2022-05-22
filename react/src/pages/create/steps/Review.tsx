@@ -68,9 +68,6 @@ const useCreateIndexArgs = (
   ];
 };
 
-const format = (val: number) => `%` + Math.round(val / 100);
-const parse = (val: string) => Number(val.replace(/^\%/, "")) * 100;
-
 export default function Review({
   name,
   symbol,
