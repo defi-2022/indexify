@@ -206,7 +206,9 @@ export default function Review({
           <Heading size="md" letterSpacing={0} mb={4}>
             Weights
           </Heading>
-          <DonutChart data={chartData} chartName={symbol} />
+          <Flex h={300}>
+            <DonutChart data={chartData} chartName={symbol} />
+          </Flex>
         </Box>
       </SimpleGrid>
       <Card my={10}>
