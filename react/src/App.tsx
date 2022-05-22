@@ -1,16 +1,16 @@
 import { Flex } from "@chakra-ui/react";
 import { useEthers } from "@usedapp/core";
-import { Polygon } from "./config";
 import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import ErrorMessage from "./components/ErrorMessage";
 import Header from "./components/Header";
+import { Polygon } from "./config";
 import { isChainIdSupported } from "./lib/network";
 import Create from "./pages/create";
 import Dashboard from "./pages/dashboard";
+import Details from "./pages/details";
 import Invest from "./pages/invest";
 import Landing from "./pages/landing";
-import Details from "./pages/details";
 interface AppProps {
   onSelectNetwork: (chainId: number) => void;
 }

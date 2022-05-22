@@ -5,6 +5,8 @@ import {
   useColorMode,
   Container,
   chakra,
+  Badge,
+  Box,
 } from "@chakra-ui/react";
 import { BiDotsHorizontalRounded, BiMoon, BiSun } from "react-icons/bi";
 import NetworkDropdown from "./NetworkDropdown";
@@ -24,13 +26,18 @@ const Header = ({ onSelectNetwork }: HeaderProps) => {
     <chakra.header boxShadow="xs">
       <Container maxW="8xl">
         <Flex py={2} justify="space-between" align="center">
-          <Heading
-            size={"2xl"}
-            cursor="pointer"
-            onClick={() => navigate("dashboard")}
-          >
-            indexify.xyz
-          </Heading>
+          <Box>
+            <Heading
+              size={"2xl"}
+              cursor="pointer"
+              onClick={() => navigate("dashboard")}
+            >
+              indexify.xyz
+            </Heading>
+            <Badge colorScheme="blue" my={1}>
+              Beta / POC: Invest at your own risk
+            </Badge>
+          </Box>
           <Flex justify="space-between" align="center">
             <NetworkDropdown
               onSelectNetwork={onSelectNetwork}
