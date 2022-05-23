@@ -1,41 +1,35 @@
-import { Button, Container, SimpleGrid } from "@chakra-ui/react";
-import { useNetwork } from "@usedapp/core";
-import { useEffect, useState } from "react";
+import {
+  Button,
+  Container,
+  SimpleGrid,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+} from "@chakra-ui/react";
+import { useEthers } from "@usedapp/core";
 import { useNavigate } from "react-router-dom";
 import FundCard from "../../components/FundCard";
 import StatsCard from "../../components/StatsCard";
 import {
   useCurrentNetwork,
   useDeployerContract,
+  useEvents,
   usePoolData,
 } from "../../hooks";
 import UniswapLogo from "../../img/uniswap.svg";
 
 export default function Dashboard() {
-  const { network } = useNetwork();
+  const { account } = useEthers();
   const navigate = useNavigate();
   const contract = useDeployerContract();
   const CurrentNetwork = useCurrentNetwork();
-  const [fundsDeployed, setFundsDeployed] = useState<any[]>([]);
 
-  const getFunds = async () => {
-    const events = await contract.connect(network.provider!).queryFilter(
-      //@ts-ignore
-      "LogDeployedIndexContract",
-      CurrentNetwork.indexDeployerBlockNumber,
-      "latest"
-    );
-    setFundsDeployed(events.map((e) => e?.args));
-  };
+  const events = useEvents("LogDeployedIndexContract", contract);
+  const fundsDeployed: any[] = events.map((e) => e?.args);
 
   const { pools, poolsLoading, whitelistedPoolsIds, whitelistedPoolsLoading } =
     usePoolData();
-
-  useEffect(() => {
-    if (network.provider) {
-      getFunds();
-    }
-  }, [network]);
 
   const handleDetailsClick = (fund: any[]) => {
     navigate(`/funds/${fund[0]}`);
@@ -43,6 +37,14 @@ export default function Dashboard() {
 
   return (
     <Container maxW="8xl" pb={10}>
+      {!account && (
+        <Alert status="warning" mb={4} mt={4} borderRadius={12}>
+          <AlertIcon />
+          <AlertTitle mr={2}>
+            You need to connect your wallet to interact with available funds
+          </AlertTitle>
+        </Alert>
+      )}
       <SimpleGrid columns={{ sm: 1, lg: 4 }} spacing={4} mt={4}>
         <Button
           variant="gradient"
@@ -51,6 +53,7 @@ export default function Dashboard() {
           h="100%"
           fontSize="2xl"
           onClick={() => navigate("/funds/create")}
+          borderRadius={12}
         >
           Create your own fund
         </Button>
@@ -78,6 +81,7 @@ export default function Dashboard() {
           <FundCard
             key={fund[0]}
             fund={fund}
+            isDisabled={!account}
             onDetailsClick={handleDetailsClick}
           />
         ))}

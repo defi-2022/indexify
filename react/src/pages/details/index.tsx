@@ -1,37 +1,41 @@
 import {
-  Heading,
-  Text,
-  Link,
-  Box,
-  Badge,
-  Flex,
   Avatar,
   AvatarGroup,
-  Spinner,
-  Button,
-  Stack,
-  SimpleGrid,
+  Badge,
+  Box,
   Container,
   Divider,
+  Flex,
+  Heading,
+  Link,
+  SimpleGrid,
+  Spinner,
+  Text,
+  Alert,
+  AlertIcon,
+  AlertTitle,
 } from "@chakra-ui/react";
-import { useGasPrice, useNetwork, useEthers } from "@usedapp/core";
-import { useState, useEffect } from "react";
+import {
+  useContractFunction,
+  useEthers,
+  useGasPrice,
+  useNetwork,
+} from "@usedapp/core";
+import { BigNumber, ethers } from "ethers";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import Card from "../../components/Card";
+import RedeemBox from "../../components/RedeemBox";
+import TxStatus from "../../components/TxStatus";
 import {
   useBalanceOf,
   useCurrentNetwork,
+  useDeployerContract,
+  useEvents,
   useIndexContract,
   usePoolData,
   useTotalSupply,
-  useDeployerContract,
 } from "../../hooks";
-import Card from "../../components/Card";
-import DonutChart from "../../components/charts/DonutChart";
-import InvestBox from "../../components/InvestBox";
-import { ethers, BigNumber } from "ethers";
-import { useContractFunction } from "@usedapp/core";
-import TxStatus from "../../components/TxStatus";
-import { useParams } from "react-router-dom";
-import RedeemBox from "../../components/RedeemBox";
 
 interface DetailsProps {}
 
@@ -51,45 +55,33 @@ const Details = () => {
   const [isInvesting, setIsInvesting] = useState(false);
   const { tokensLoading, tokens } = usePoolData();
   const CurrentNetwork = useCurrentNetwork();
-
-  const getVaultSnapshot = async () => {
-    const events = await contract.connect(network.provider!).queryFilter(
-      //@ts-ignore
-      "*",
-      CurrentNetwork.indexDeployerBlockNumber,
-      "latest"
-    );
-    setAllEvents(events);
-    const vault = events.filter(
-      (e: any) => e.event === "Invested" || e.event === "Redeemed"
-    );
-    const latest = vault[vault.length - 1];
-    if (latest) {
-      setVault(latest?.args?.newTotalsInVault);
-    }
-  };
-
-  const getFund = async () => {
-    const events = await deployerContract
-      .connect(network.provider!)
-      .queryFilter(
-        //@ts-ignore
-        "LogDeployedIndexContract",
-        CurrentNetwork.indexDeployerBlockNumber,
-        "latest"
+  const contractEvents = useEvents("*", contract);
+  const factoryEvents = useEvents(
+    "LogDeployedIndexContract",
+    deployerContract,
+    { shouldQueryOnce: true }
+  );
+  useEffect(() => {
+    if (contractEvents.length > 0 && contractEvents.length > allEvents.length) {
+      setAllEvents(contractEvents);
+      const vault = contractEvents.filter(
+        (e: any) => e.event === "Invested" || e.event === "Redeemed"
       );
-    const event = events.find((e) => e?.args?.[0] === address);
-    if (event) {
-      setFund((event?.args as any[]) || []);
+      const latest = vault[vault.length - 1];
+      if (latest) {
+        setVault(latest?.args?.newTotalsInVault);
+      }
     }
-  };
+  }, [contractEvents]);
 
   useEffect(() => {
-    if (network.provider) {
-      getVaultSnapshot();
-      getFund();
+    if (factoryEvents.length > 0) {
+      const event = factoryEvents.find((e) => e?.args?.[0] === address);
+      if (event && fund.length === 0) {
+        setFund((event?.args as any[]) || []);
+      }
     }
-  }, [network]);
+  }, [factoryEvents]);
 
   const [
     address2,
@@ -120,12 +112,22 @@ const Details = () => {
 
   const handleRedeemTokens = async ({ amount }: { amount: string }) => {
     const value = ethers.utils.parseEther(String(amount)).toString();
-    await redeem(value);
+    await redeem(value, {
+      gasLimit: 1000000,
+    });
   };
 
   if (fund.length === 0) {
     return (
       <Container maxW="8xl" pb={10}>
+        {!userAddress && (
+          <Alert status="warning" mb={4} mt={4} borderRadius={12}>
+            <AlertIcon />
+            <AlertTitle mr={2}>
+              You need to connect your wallet to interact with available funds
+            </AlertTitle>
+          </Alert>
+        )}
         <Spinner mt={4} />
       </Container>
     );
@@ -206,16 +208,20 @@ const Details = () => {
           </Badge>
         </Box>
       </SimpleGrid>
-      <RedeemBox
-        onSubmit={handleRedeemTokens}
-        symbol={symbol}
-        balance={balance}
-      />
-      <Text mb={4}>
-        Redeeming lets you burn your tokens and get the portion of collateral
-        from the vault that belongs to you in your wallet
-      </Text>
-      <TxStatus status={redeemState.status} />
+      {!!userAddress && (
+        <>
+          <RedeemBox
+            onSubmit={handleRedeemTokens}
+            symbol={symbol}
+            balance={balance}
+          />
+          <Text mb={4}>
+            Redeeming lets you burn your tokens and get the portion of
+            collateral from the vault that belongs to you in your wallet
+          </Text>
+          <TxStatus status={redeemState.status} />
+        </>
+      )}
       <Divider my={10} />
       <Heading mb={2}>${symbol} fund vault holdings</Heading>
       <Flex align={"center"}>
@@ -259,7 +265,7 @@ const Details = () => {
                         mr={2}
                         size="xs"
                       />{" "}
-                      <Text>{event.args.newTotalsInVault.toString()}</Text>
+                      <Text>{event.args.newTotalsInVault[i].toString()}</Text>
                     </Flex>
                   ))}
                 </Box>

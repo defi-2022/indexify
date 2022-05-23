@@ -1,6 +1,6 @@
-import { Alert, Spinner, Text, Link } from "@chakra-ui/react";
+import { Alert, Link, Spinner, Text } from "@chakra-ui/react";
+import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { useCurrentNetwork } from "../hooks";
-
 interface DeploymentStatusProps {
   status:
     | "None"
@@ -10,8 +10,9 @@ interface DeploymentStatusProps {
     | "Fail"
     | "Exception";
   receipt?: any;
+  transaction?: TransactionResponse;
 }
-const TxStatus = ({ status, receipt }: DeploymentStatusProps) => {
+const TxStatus = ({ status, receipt, transaction }: DeploymentStatusProps) => {
   const CurrentNetwork = useCurrentNetwork();
   if (status === "None") {
     return null;
@@ -73,6 +74,7 @@ const TxStatus = ({ status, receipt }: DeploymentStatusProps) => {
     );
   }
   if (status === "Fail") {
+    console.log(transaction);
     return (
       <Alert status="error" borderRadius={12} justifyContent="space-between">
         <Text>Your transaction has failed</Text>

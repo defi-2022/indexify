@@ -1,19 +1,20 @@
 import {
-  Heading,
-  Text,
-  Link,
-  Box,
-  Badge,
-  Flex,
   Avatar,
   AvatarGroup,
-  Spinner,
+  Badge,
+  Box,
   Button,
-  Stack,
+  Flex,
+  Heading,
+  Link,
   SimpleGrid,
+  Spinner,
+  Stack,
+  Text,
 } from "@chakra-ui/react";
-import { useGasPrice, useNetwork, useEthers } from "@usedapp/core";
-import { useState, useEffect } from "react";
+import { useContractFunction, useEthers, useGasPrice } from "@usedapp/core";
+import { ethers } from "ethers";
+import { useState } from "react";
 import {
   useBalanceOf,
   useCurrentNetwork,
@@ -24,12 +25,11 @@ import {
 import Card from "./Card";
 import DonutChart from "./charts/DonutChart";
 import InvestBox from "./InvestBox";
-import { ethers, BigNumber } from "ethers";
-import { useContractFunction } from "@usedapp/core";
 import TxStatus from "./TxStatus";
 interface FundCardProps {
   fund: any[];
   onDetailsClick: (fund: any[]) => void;
+  isDisabled?: boolean;
 }
 
 const FundCard = ({
@@ -47,10 +47,9 @@ const FundCard = ({
     manager,
   ],
   onDetailsClick,
+  isDisabled,
 }: FundCardProps) => {
   const { account: userAddress } = useEthers();
-  const { network } = useNetwork();
-  const [vault, setVault] = useState<BigNumber[]>([]);
 
   const contract = useIndexContract(address);
   const balance = useBalanceOf(address, userAddress!);
@@ -76,28 +75,6 @@ const FundCard = ({
     protocolAddress,
     manager,
   ];
-
-  const getVaultSnapshot = async () => {
-    const events = await contract.connect(network.provider!).queryFilter(
-      //@ts-ignore
-      "*",
-      CurrentNetwork.indexDeployerBlockNumber,
-      "latest"
-    );
-    const vault = events.filter(
-      (e: any) => e.event === "Invested" || e.event === "Redeemed"
-    );
-    const latest = vault[vault.length - 1];
-    if (latest) {
-      setVault(latest?.args?.newTotalsInVault);
-    }
-  };
-
-  useEffect(() => {
-    if (network.provider) {
-      getVaultSnapshot();
-    }
-  }, [network]);
 
   const chartData =
     Object.keys(tokens).length > 0
@@ -172,15 +149,17 @@ const FundCard = ({
           </Box>
         </Flex>
         <Box>
-          <Box>
-            <Badge colorScheme="blue" mr={2}>
-              User Balance
-            </Badge>
-            <Badge>
-              {balance ? ethers.utils.formatEther(balance?.toString()) : 0}{" "}
-              Tokens
-            </Badge>
-          </Box>
+          {!isDisabled && (
+            <Box>
+              <Badge colorScheme="blue" mr={2}>
+                User Balance
+              </Badge>
+              <Badge>
+                {balance ? ethers.utils.formatEther(balance?.toString()) : 0}{" "}
+                Tokens
+              </Badge>
+            </Box>
+          )}
           <Box>
             <Badge colorScheme="blue" mr={2}>
               Total Supply
@@ -216,6 +195,7 @@ const FundCard = ({
             colorScheme={isInvesting ? "red" : undefined}
             w="100%"
             onClick={() => setIsInvesting(!isInvesting)}
+            isDisabled={isDisabled}
           >
             {isInvesting ? "Cancel" : `Invest`}
           </Button>
